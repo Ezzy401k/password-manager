@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter import messagebox  # Import messagebox module for displaying alerts
 import random  # Import random module for generating random passwords
 import pyperclip  # Import pyperclip module for copying passwords to clipboard
+import json
 
 # Define color constants for the UI
 BLACK = "#222831"
@@ -12,7 +13,8 @@ WHITE = "#EEEEEE"
 # Define character sets for generating passwords
 lower_letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o',
                  'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
-upper_letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U',
+upper_letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
+                 'U',
                  'V', 'W', 'X', 'Y', 'Z']
 numbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 symbols = ['!', '#', '$', '%', '&', '(', ')', '*', '+']
@@ -55,9 +57,15 @@ def fetch_seq():
     web = web_in.get().title()
     email = email_in.get()
     passw = pass_in.get()
+    new_data = {
+        web: {
+            "email": email,
+            "password": passw,
+        }
+    }
 
-    # Check if website and email fields are not empty
-    if len(web) > 0 and len(email) > 0:
+    # Check if website field are not empty
+    if len(web) > 0:
         # Check if password meets the minimum length requirement
         if len(passw) > 8:
             # Ask for user confirmation before saving
@@ -65,11 +73,20 @@ def fetch_seq():
                                                               f"Email: {email}\n"
                                                               f"Password: {passw}\n"
                                                               f"Is it correct")
+
             if is_ok:
-                # Format the information and save it to a text file
-                style = f"{web} | {email} | {passw}\n"
-                with open("passwords.txt", "a") as file:
-                    file.write(style)
+                # Format the information and save it to a json file
+                try:
+                    with open("passwords.json", "r") as file:
+                        data = json.load(file)
+                        data.update(new_data)
+
+                except FileNotFoundError:
+                    with open("passwords.json", "w") as file:
+                        json.dump(new_data, file, indent=4)
+                else:
+                    with open("passwords.json", "w") as file:
+                        json.dump(data, file, indent=4)
 
                 # Show success message and clear input fields
                 messagebox.showinfo(title=web, message="Save successful")
@@ -83,6 +100,28 @@ def fetch_seq():
     else:
         # Show warning message for empty fields
         messagebox.showwarning(title="Oops", message="Please don't leave any field empty!")
+
+
+# ---------------------------- SEARCH ------------------------------- #
+def search_data():
+    site = web_in.get().title()
+    try:
+        with open("passwords.json", "r") as file:
+            data_search = json.load(file)
+
+    except FileNotFoundError:
+        messagebox.showinfo(title="No Entry", message="There is no data to search from.")
+    else:
+        try:
+            web_dict = data_search[site]
+        except KeyError:
+            messagebox.showinfo(title="Wrong Entry", message=f"No website saved by the the name '{site}'.")
+        else:
+
+            email_in.delete(0, END)
+            email_in.insert(0, web_dict["email"])
+            pass_in.delete(0, END)
+            pass_in.insert(0, web_dict["password"])
 
 
 # ---------------------------- UI SETUP ------------------------------- #
@@ -105,9 +144,10 @@ user = Label(text="Email/Username:", bg=GRAY, fg=WHITE)
 user.grid(column=0, row=2)
 password = Label(text="Password:", bg=GRAY, fg=WHITE)
 password.grid(column=0, row=3)
-web_in = Entry(width=50, bg=BLACK, fg=WHITE)
+
+web_in = Entry(width=32, bg=BLACK, fg=WHITE)
 web_in.focus()
-web_in.grid(column=1, row=1, columnspan=2)
+web_in.grid(column=1, row=1, columnspan=1)
 email_in = Entry(width=50, bg=BLACK, fg=WHITE)
 email_in.insert(END, "esraelmekdem@gmail.com")
 email_in.grid(column=1, row=2, columnspan=2)
@@ -115,6 +155,8 @@ pass_in = Entry(width=32, bg=BLACK, fg=WHITE)
 pass_in.grid(column=1, row=3)
 
 # Buttons for generating password and saving data
+search = Button(text="search", width=14, bg=CYAN, command=search_data)
+search.grid(column=2, row=1)
 gen_pass = Button(text="Generate Password", bg=CYAN, command=generate_pass)
 gen_pass.grid(column=2, row=3)
 add = Button(text="Add", width=38, bg=CYAN, command=fetch_seq)
@@ -122,4 +164,3 @@ add.grid(column=1, row=4, columnspan=2)
 
 # Run the application
 window.mainloop()
-
