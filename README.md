@@ -1,4 +1,4 @@
-day 29 of 100 day python coding challenge
+day 29 and 30 of 100 day python coding challenge
 # Password Manager
 
 This Python program is a password manager application built using the Tkinter library. It allows users to generate secure passwords and save login credentials for various websites.
@@ -9,6 +9,8 @@ This Python program is a password manager application built using the Tkinter li
 - Ability to save website URLs, usernames, and passwords securely.
 - Verification prompts before saving the information.
 - Warning messages for weak passwords or empty fields.
+- Ability to search saved data.
+- Warning message for wrong credentials when searching.
 
 ## Usage
 
